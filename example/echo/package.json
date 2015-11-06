@@ -1,0 +1,41 @@
+{
+  "name": "echo",
+  "version": "1.0.0",
+  "description": "echo",
+  "keywords": [
+    "echo"
+  ],
+  "author": {
+    "name": "Yieldbot, Inc.",
+    "url": "http://www.yieldbot.com"
+  },
+  "contributors": [
+  ],
+  "main": "lib/index.js",
+  "scripts": {
+    "lint": "jshint --reporter node_modules/jshint-stylish lib/*.js test/*.js",
+    "lint:build": "mkdir -p reports/ && jshint --reporter checkstyle lib/*.js test/*.js > reports/jshint-checkstyle.xml",
+    "depcheck": "dependency-check . lib/* --entry lib/service.js",
+    "depcheck:unused": "dependency-check ./package.json --unused --no-dev lib/* --entry lib/service.js",
+    "depcheck:outdated": "david || true",
+    "test:unit": "mkdir -p reports/ && NODE_ENV=test multi='spec=- xunit=reports/mocha-xunit.xml' istanbul cover _mocha -- -R mocha-multi test/test-*.js && istanbul check-coverage",
+    "test": "npm run depcheck && npm run depcheck:unused && npm run lint && npm run depcheck:outdated && npm run test:unit",
+    "start": "node-dev lib/service.js",
+    "clean": "rm -rf node_modules/ && rm -rf reports/",
+    "build": "npm run clean && npm install && npm run depcheck && npm run depcheck:unused && npm run lint:build && npm run test:unit"
+  },
+  "dependencies": {
+    "seneca": "0.7.x",
+    "seneca-nats-transport": "1.x"
+  },
+  "devDependencies": {
+    "chai": "3.4.x",
+    "jshint": "2.8.x",
+    "jshint-stylish": "2.0.x",
+    "mocha": "2.3.x",
+    "mocha-multi": "0.7.x",
+    "dependency-check": "2.5.x",
+    "istanbul": "^0.4.0",
+    "node-dev": "2.7.x"
+  }
+}

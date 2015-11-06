@@ -1,0 +1,16 @@
+.DS_Store
+.idea
+.settings
+.coverrun
+.coverdata
+.env
+*.log
+*.heapsnapshot
+*.pprof
+xunit.xml
+/example/echo/tmp/
+/example/echo/logs/
+/example/echo/reports/
+
+npm-debug.log
+/example/echo/node_modules/
