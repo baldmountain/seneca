@@ -1,4 +1,4 @@
-package seneca
+package client
 
 import "github.com/bitly/go-simplejson"
 
