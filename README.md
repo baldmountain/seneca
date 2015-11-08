@@ -10,36 +10,63 @@ go get github.com/baldmountain/seneca
 
 ### Usage
 
-The client relies heavily on github.com/bitly/go-simplejson. If you aren't
-familiar with that you may want to look there first. simplejson is used to
-build requests that will be sent to the server. Seneca uses json for all
-it's communications so the client needs to generate json.
+The Act method takes any interface. You'll need to define a struct that represents
+your data for it to be Marshaled and Unmarshaled from JSON correctly.
 
-The easiest way to build a request is like:
+Start by defining a struct like:
 
 ```Go
-req, _ := simplejson.NewFromReader(strings.NewReader(`{"role":"echo","cmd":"echo"}`))
-req.Set("msg", s)
+type echo struct {
+	Role string `json:"role"`
+	Cmd  string `json:"cmd"`
+	Msg  string `json:"msg"`
+}
 ```
 
-Then to actually call the service just create either a web.Requester or a
-tcp.Requester and call Act on it.
+You'll need a response struct to capture the reply from the service.
+
+To actually call the service just create either a web.Requester or a
+tcp.Requester and call Act on it and pass both the request and response.
 
 ```Go
 r := web.Requester{Host: "localhost", Port: 3030}
+req := echo{Role: "echo", Cmd: "echo", Msg: s}
+res := &echo{}
 // call the remote service
-res, err := r.Act(req)
+res, err := r.Act(req, res)
 if err != nil {
   return "", err
 }
-res.Get("msg").String()
+fmt.Println(res.Msg)
 ```
 
-The returned value from Act is a simplejson object that can be queried for values.
-See the main.go file in the example directory for a more complete example. There
-is also a simple echo server in the example directory that can be used to try out
-the example.
+In this case the response is the same as the request so we can pass an instance
+of echo. Most likely you'll be creating a different response structure to match
+the response from the service.
+
+See the example folder for an example Go program that calls a Nodejs Seneca echo
+service. In order to run the service you'll need a recent version of Nodejs.
 
 ### License
 
-Copyright (c) 2015 Geoffrey Clements. - All rights reserved.
+The MIT License (MIT)
+
+Copyright (c) 2015 Geoffrey Clements
+
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in all
+copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+SOFTWARE.
