@@ -16,7 +16,11 @@ type echo struct {
 
 // Echo sends an echo to a seneca server
 func Echo(r client.Acter, s string) (string, error) {
-	req := echo{Role: "echo", Cmd: "echo", Msg: s}
+	req := struct {
+		Role string `json:"role"`
+		Cmd  string `json:"cmd"`
+		Msg  string `json:"msg"`
+	}{"echo", "echo", s}
 	var res = &echo{}
 	// actually call the remote service
 	err := r.Act(req, res)

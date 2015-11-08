@@ -58,23 +58,6 @@ func (r *Requester) openConnection() error {
 	return err
 }
 
-type actCommon struct {
-	Kind   string `json:"kind"`
-	Origin string `json:"origin"`
-	ID     string `json:"id"`
-}
-
-type actRequest struct {
-	actCommon
-	Time time.Time   `json:"time"`
-	Act  interface{} `json:"act"`
-}
-
-type actResponse struct {
-	actCommon
-	Res interface{}
-}
-
 // Act on an interface to request and fills in a responce interface
 func (r *Requester) Act(req interface{}, res interface{}) error {
 	if err := r.openConnection(); err != nil {
@@ -82,10 +65,13 @@ func (r *Requester) Act(req interface{}, res interface{}) error {
 	}
 
 	var id = uuid.New()
-	fullReq := actRequest{
-		actCommon: actCommon{Kind: "act", Origin: "Go", ID: id},
-		Time:      time.Now(),
-		Act:       req}
+	fullReq := struct {
+		Kind   string      `json:"kind"`
+		Origin string      `json:"origin"`
+		ID     string      `json:"id"`
+		Time   time.Time   `json:"time"`
+		Act    interface{} `json:"act"`
+	}{"act", "Go", id, time.Now(), req}
 	s, err := json.Marshal(fullReq)
 	if err != nil {
 		return err
@@ -96,7 +82,14 @@ func (r *Requester) Act(req interface{}, res interface{}) error {
 		return err
 	}
 
-	fullRes := &actResponse{Res: res}
+	fullRes := new(struct {
+		Kind   string `json:"kind"`
+		Origin string `json:"origin"`
+		ID     string `json:"id"`
+		Res    interface{}
+	})
+
+	fullRes.Res = res
 	// TODO: check the id of the returned value to make sure we get the response we expect
 	return json.Unmarshal(out, fullRes)
 }
