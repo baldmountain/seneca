@@ -1,6 +1,6 @@
 ## seneca
 
-** A client for accessing a nodejs Seneca service from Go. **
+**A client for accessing a nodejs Seneca service from Go.**
 
 ### Installation
 
@@ -30,14 +30,15 @@ tcp.Requester and call Act on it and pass both the request and response.
 
 ```Go
 r := web.Requester{Host: "localhost", Port: 3030}
-req := echo{Role: "echo", Cmd: "echo", Msg: s}
+req := echo{Role: "echo", Cmd: "echo", Msg: "Hello, world!"}
 res := &echo{}
 // call the remote service
-res, err := r.Act(req, res)
+err := r.Act(req, res)
 if err != nil {
-  return "", err
+  fmt.Println("error", err)
+} else {
+  fmt.Println(res.Msg)
 }
-fmt.Println(res.Msg)
 ```
 
 In this case the response is the same as the request so we can pass an instance
