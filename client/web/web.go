@@ -2,11 +2,10 @@ package web
 
 import (
 	"bytes"
+	"encoding/json"
 	"fmt"
 	"io/ioutil"
 	"net/http"
-
-	"github.com/bitly/go-simplejson"
 )
 
 // Requester is a struct to wrap a host and port to send requests to
@@ -15,8 +14,8 @@ type Requester struct {
 	Port int
 }
 
-func request(host string, port int, json []byte) ([]byte, error) {
-	url := fmt.Sprintf("http://%s:%d/act", host, port)
+func (r *Requester) request(json []byte) ([]byte, error) {
+	url := fmt.Sprintf("http://%s:%d/act", r.Host, r.Port)
 	res, err := http.Post(url, "text/json", bytes.NewReader(json))
 	if err != nil {
 		return nil, err
@@ -32,15 +31,16 @@ func (r *Requester) Close() error {
 }
 
 // Act on an interface to request and fills in a responce interface
-func (r *Requester) Act(req *simplejson.Json) (*simplejson.Json, error) {
-	jsonStr, err := req.Encode()
+func (r *Requester) Act(req interface{}, res interface{}) error {
+	s, err := json.Marshal(req)
 	if err != nil {
-		return nil, err
+		return err
 	}
-	json, err := request(r.Host, r.Port, jsonStr)
+
+	out, err := r.request(s)
 	if err != nil {
-		return nil, err
+		return err
 	}
-	// Unmarshal is smart enough to put lowercase response in uppercase reply
-	return simplejson.NewJson(json)
+
+	return json.Unmarshal(out, res)
 }

@@ -2,13 +2,11 @@ package tcp
 
 import (
 	"bufio"
-	"errors"
+	"encoding/json"
 	"fmt"
 	"net"
-	"strings"
 	"time"
 
-	"github.com/bitly/go-simplejson"
 	"github.com/pborman/uuid"
 )
 
@@ -60,38 +58,44 @@ func (r *Requester) openConnection() error {
 	return err
 }
 
-// Act on an interface to request and fills in a responce interface
-func (r *Requester) Act(req *simplejson.Json) (*simplejson.Json, error) {
-	if err := r.openConnection(); err != nil {
-		return nil, err
-	}
+type actCommon struct {
+	Kind   string `json:"kind"`
+	Origin string `json:"origin"`
+	ID     string `json:"id"`
+}
 
-	json, err := simplejson.NewFromReader(strings.NewReader(`{"kind":"act","origin":"Go"}`))
-	if err != nil {
-		return nil, err
+type actRequest struct {
+	actCommon
+	Time time.Time   `json:"time"`
+	Act  interface{} `json:"act"`
+}
+
+type actResponse struct {
+	actCommon
+	Res interface{}
+}
+
+// Act on an interface to request and fills in a responce interface
+func (r *Requester) Act(req interface{}, res interface{}) error {
+	if err := r.openConnection(); err != nil {
+		return err
 	}
 
 	var id = uuid.New()
-	json.Set("id", id)
-	json.Set("time", time.Now().String())
-	json.Set("act", req)
-	s, err := json.Encode()
+	fullReq := actRequest{
+		actCommon: actCommon{Kind: "act", Origin: "Go", ID: id},
+		Time:      time.Now(),
+		Act:       req}
+	s, err := json.Marshal(fullReq)
 	if err != nil {
-		return nil, err
+		return err
 	}
 
 	out, err := r.request(s)
 	if err != nil {
-		return nil, err
+		return err
 	}
 
-	json, err = simplejson.NewJson(out)
-	if err != nil {
-		return nil, err
-	}
-
-	if json.Get("id").MustString("") != id {
-		return nil, errors.New("unexpected result")
-	}
-	return json.Get("res"), nil
+	fullRes := &actResponse{Res: res}
+	return json.Unmarshal(out, fullRes)
 }
