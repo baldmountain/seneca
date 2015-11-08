@@ -48,6 +48,9 @@ the response from the service.
 See the example folder for an example Go program that calls a Nodejs Seneca echo
 service. In order to run the service you'll need a recent version of Nodejs.
 
+*NOTE: This library probably isn't thread safe. If you make requests from multiple
+Goroutines using the same requester you will most likely get unexpected results.*
+
 ### License
 
 The MIT License (MIT)

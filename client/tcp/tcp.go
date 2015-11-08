@@ -97,5 +97,6 @@ func (r *Requester) Act(req interface{}, res interface{}) error {
 	}
 
 	fullRes := &actResponse{Res: res}
+	// TODO: check the id of the returned value to make sure we get the response we expect
 	return json.Unmarshal(out, fullRes)
 }
