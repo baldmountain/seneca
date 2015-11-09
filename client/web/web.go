@@ -30,17 +30,24 @@ func (r *Requester) Close() error {
 	return nil
 }
 
-// Act on an interface to request and fills in a responce interface
-func (r *Requester) Act(req interface{}, res interface{}) error {
+//Act on an interface to request and fills in a responce interface.
+func (r *Requester) Act(req interface{}, res interface{}) (returnedJSON []byte, err error) {
 	s, err := json.Marshal(req)
 	if err != nil {
-		return err
+		return
 	}
 
 	out, err := r.request(s)
 	if err != nil {
-		return err
+		return
 	}
 
-	return json.Unmarshal(out, res)
+	err = json.Unmarshal(out, res)
+	if err != nil {
+		return
+	}
+	// since there is more in 'out' that the response we need to remove that by
+	// re-encoding the res object. The downside is we may loose fields
+	returnedJSON, err = json.Marshal(res)
+	return
 }

@@ -10,10 +10,23 @@ go get github.com/baldmountain/seneca
 
 ### Usage
 
-The Act method takes any interface. You'll need to define a struct that represents
-your data for it to be Marshaled and Unmarshaled from JSON correctly.
+To use the Seneca client you just create a Requester and call Act on it. There are
+Requesters for the tcp and web transport. All the Requesters implement the Acter
+interface.
 
-Start by defining a struct like:
+```Go
+type Acter interface {
+	Act(req interface{}, res interface{}) ([]byte, error)
+	io.Closer
+}
+```
+
+The `io.Closer` interface specifies a Close method for the Requester that
+is used to close any open network connections the Requester may have opened.
+
+The Act method takes two parameters. The first is a struct specifying the request.
+
+It should look something like:
 
 ```Go
 type echo struct {
@@ -23,17 +36,28 @@ type echo struct {
 }
 ```
 
-You'll need a response struct to capture the reply from the service.
+where the fields specify the pattern of the seneca request and any parameters
+sent to the Seneca action. Note the `json:"role"` for the Role field. This allows
+us to specify a lowercase json name since the Go JSON library only encodes exported
+names. (The ones that start with a capital letter.)
+
+The second parameter to Act is a response struct to capture the reply from the
+service. It should include any fields that you want to decode from the response.
+Any extra fields in the response, that are not specified in the response struct,
+are discarded.
+
+The Act method returns the JSON byte array for the response struct and an error if
+there was one.
 
 To actually call the service just create either a web.Requester or a
-tcp.Requester and call Act on it and pass both the request and response.
+tcp.Requester and call Act on it. Pass both the request and response structs.
 
 ```Go
 r := web.Requester{Host: "localhost", Port: 3030}
 req := echo{Role: "echo", Cmd: "echo", Msg: "Hello, world!"}
 res := &echo{}
 // call the remote service
-err := r.Act(req, res)
+_, err := r.Act(req, res)
 if err != nil {
   fmt.Println("error", err)
 } else {
@@ -42,7 +66,7 @@ if err != nil {
 ```
 
 In this case the response is the same as the request so we can pass an instance
-of echo. Most likely you'll be creating a different response structure to match
+of echo. Most likely you'll create a different response structure to match
 the response from the service.
 
 See the example folder for an example Go program that calls a Nodejs Seneca echo

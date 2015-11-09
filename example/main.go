@@ -23,10 +23,12 @@ func Echo(r client.Acter, s string) (string, error) {
 	}{"echo", "echo", s}
 	var res = &echo{}
 	// actually call the remote service
-	err := r.Act(req, res)
+	json, err := r.Act(req, res)
 	if err != nil {
 		return "", err
 	}
+	//
+	fmt.Println("The full JSON response", string(json))
 	return res.Msg, nil
 }
 

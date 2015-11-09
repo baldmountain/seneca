@@ -59,9 +59,9 @@ func (r *Requester) openConnection() error {
 }
 
 // Act on an interface to request and fills in a responce interface
-func (r *Requester) Act(req interface{}, res interface{}) error {
-	if err := r.openConnection(); err != nil {
-		return err
+func (r *Requester) Act(req interface{}, res interface{}) (returnedJSON []byte, err error) {
+	if err = r.openConnection(); err != nil {
+		return
 	}
 
 	var id = uuid.New()
@@ -71,15 +71,15 @@ func (r *Requester) Act(req interface{}, res interface{}) error {
 		ID     string      `json:"id"`
 		Time   time.Time   `json:"time"`
 		Act    interface{} `json:"act"`
-	}{"act", "Go", id, time.Now(), req}
+	}{"act", "Go-tcp-client", id, time.Now(), req}
 	s, err := json.Marshal(fullReq)
 	if err != nil {
-		return err
+		return
 	}
 
 	out, err := r.request(s)
 	if err != nil {
-		return err
+		return
 	}
 
 	fullRes := new(struct {
@@ -91,5 +91,12 @@ func (r *Requester) Act(req interface{}, res interface{}) error {
 
 	fullRes.Res = res
 	// TODO: check the id of the returned value to make sure we get the response we expect
-	return json.Unmarshal(out, fullRes)
+	err = json.Unmarshal(out, fullRes)
+	if err != nil {
+		return
+	}
+	// since there is more in 'out' that the response we need to remove that by
+	// re-encoding the res object. The downside is we may loose fields
+	returnedJSON, err = json.Marshal(res)
+	return
 }
