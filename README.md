@@ -5,8 +5,10 @@
 ### Installation
 
 ```bash
+go get github.com/pborman/uuid
 go get github.com/baldmountain/seneca
 ```
+Ignore the message about no buildable Go source files. We are just getting the repository.
 
 ### Usage
 
